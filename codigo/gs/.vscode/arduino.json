@@ -1,0 +1,5 @@
+{
+    "board": "esp32:esp32:esp32cam",
+    "port": "COM15",
+    "sketch": "esp32-sat.ino"
+}
