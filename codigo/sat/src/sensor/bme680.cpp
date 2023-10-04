@@ -1,38 +1,40 @@
 #include <Arduino.h>
 #include <FreeRTOS/FreeRTOS.h>
 #include <FreeRTOS/task.h>
-#include <bme68xLibrary.h>
+#include "bsec.h"
 
 #include "../packet.hpp"
 #include "sensor.hpp"
 
 void BME680_c::thread() {
-	Bme68x bme;
-	bme.begin(0x77, Wire);
-	if (bme.checkStatus()) {
-		if (bme.checkStatus() == BME68X_ERROR) {
-			Serial.println("Sensor error:" + bme.statusString());
-			return;
-		} else if (bme.checkStatus() == BME68X_WARNING) {
-			Serial.println("Sensor Warning:" + bme.statusString());
-		}
-	}
-	bme.setTPH();
+	Bsec iaqSensor;
+	iaqSensor.begin(0x77, Wire);
+	bsec_virtual_sensor_t sensorList[13] = {
+		BSEC_OUTPUT_IAQ,
+		BSEC_OUTPUT_STATIC_IAQ,
+		BSEC_OUTPUT_CO2_EQUIVALENT,
+		BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+		BSEC_OUTPUT_RAW_TEMPERATURE,
+		BSEC_OUTPUT_RAW_PRESSURE,
+		BSEC_OUTPUT_RAW_HUMIDITY,
+		BSEC_OUTPUT_RAW_GAS,
+		BSEC_OUTPUT_STABILIZATION_STATUS,
+		BSEC_OUTPUT_RUN_IN_STATUS,
+		BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+		BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+		BSEC_OUTPUT_GAS_PERCENTAGE
+	};
+	iaqSensor.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
 	while (1) {
-		bme68xData data;
-
-		bme.setOpMode(BME68X_FORCED_MODE);
-		delayMicroseconds(bme.getMeasDur());
-
-		if (bme.fetchData()) {
-			bme.getData(data);
+		if (iaqSensor.run()) {
 			container temp{
-				data.temperature,
-				data.pressure,
-				data.humidity
+				iaqSensor.temperature,
+				iaqSensor.pressure,
+				iaqSensor.humidity
 			};
 			xQueueOverwrite(queue, &temp);
 		}
+		vTaskDelay(pdMS_TO_TICKS(iaqSensor.nextCall - iaqSensor.getTimeMs()));
 	}
 }
 

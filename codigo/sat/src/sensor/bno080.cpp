@@ -12,7 +12,7 @@
 void BNO080_c::thread() {
 	BNO080 imu;
 	imu.begin();
-	imu.enableRotationVector(50);
+	imu.enableRotationVector(10);
 	while (1) {
 		if (imu.dataAvailable() == true) {
 			container data = {
