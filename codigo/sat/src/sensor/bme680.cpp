@@ -34,7 +34,10 @@ void BME680_c::thread() {
 			};
 			xQueueOverwrite(queue, &temp);
 		}
-		vTaskDelay(pdMS_TO_TICKS(iaqSensor.nextCall - iaqSensor.getTimeMs()));
+		const int64_t wait = iaqSensor.nextCall - iaqSensor.getTimeMs();
+		if (wait > 0) {
+			vTaskDelay(pdMS_TO_TICKS(wait));
+		}
 	}
 }
 

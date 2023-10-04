@@ -8,7 +8,7 @@
 #include "../packet.hpp"
 
 #define BNO080_STACK 1800
-#define BME680_STACK 2400
+#define BME680_STACK 3000
 #define CAMERA_STACK 6400
 #define GPS_STACK 3000
 
