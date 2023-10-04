@@ -21,7 +21,7 @@ void setup() {
 	Wire.setClock(400000);
 	sensors.push_back(dynamic_cast<Sensor *>(new BNO080_c()));
 	sensors.push_back(dynamic_cast<Sensor *>(new BME680_c()));
-	sensors.push_back(dynamic_cast<Sensor *>(new Camera_c()));
+	//sensors.push_back(dynamic_cast<Sensor *>(new Camera_c()));
 	sensors.push_back(dynamic_cast<Sensor *>(new GPS_c()));
 	wifi();
 	pinMode(LED_PIN, OUTPUT);

@@ -52,7 +52,7 @@ private:
 	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
 	BNO080_c() : Sensor(SensorType::BNO080) {
-		xTaskCreate(_thread<BNO080_c>, name.c_str(), BNO080_STACK, this, 1, &handle);
+		xTaskCreatePinnedToCore(_thread<BNO080_c>, name.c_str(), BNO080_STACK, this, 2, &handle, 1);
 	};
 	void thread();
 	bool available() override;
@@ -76,7 +76,7 @@ private:
 	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
 	BME680_c() : Sensor(SensorType::BME680) {
-		xTaskCreate(_thread<BME680_c>, name.c_str(), BME680_STACK, this, 1, &handle);
+		xTaskCreatePinnedToCore(_thread<BME680_c>, name.c_str(), BME680_STACK, this, 2, &handle, 1);
 	};
 	void thread();
 	bool available() override;
@@ -104,7 +104,7 @@ private:
 	std::unique_ptr<container> _data;
 public:
 	Camera_c() : Sensor(SensorType::OV2640) {
-		xTaskCreate(_thread<Camera_c>, name.c_str(), CAMERA_STACK, this, 1, &handle);
+		xTaskCreatePinnedToCore(_thread<Camera_c>, name.c_str(), CAMERA_STACK, this, 1, &handle, 0);
 	};
 	void thread();
 	bool available() override;
@@ -128,7 +128,7 @@ private:
 	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
 	GPS_c() : Sensor(SensorType::GPS) {
-		xTaskCreate(_thread<GPS_c>, name.c_str(), GPS_STACK, this, 1, &handle);
+		xTaskCreatePinnedToCore(_thread<GPS_c>, name.c_str(), GPS_STACK, this, 2, &handle, 1);
 	};
 	void thread();
 	bool available() override;
