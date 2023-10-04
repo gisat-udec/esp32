@@ -9,7 +9,7 @@
 
 void setup() {
 	ESP_ERROR_CHECK(esp_event_loop_create_default());
-	Serial.begin(115200);
+	Serial.begin(250000);
 	Wire.begin(14, 15);
 	Wire.setClock(400000);
 	wifi();

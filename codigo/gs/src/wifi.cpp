@@ -53,7 +53,8 @@ IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
 	while (cursor < payloadlen - 1) {
 		Packet p(&packet->payload[cursor]);
 		if (p.subtype != 2) {
-			Serial.print(p.subtype);
+			Serial.write("esp32-sat");
+			Serial.write(&packet->payload[cursor], p.len());
 		}
 		cursor += p.len();
 	}
