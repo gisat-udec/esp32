@@ -48,9 +48,14 @@ IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
 	if (std::memcmp(&packet->payload[16], address3, 6) != 0) { return; }
 
 	// Enviar por serial
-	Serial.print("\ngot packet\n");
-	for (size_t i = 0; i < packet->rx_ctrl.sig_len; i++) {
-		Serial.print(packet->payload[i], HEX);
+	const int payloadlen = packet->rx_ctrl.sig_len - 4;
+	int cursor = sizeof(dot11_header);
+	while (cursor < payloadlen - 1) {
+		Packet p(&packet->payload[cursor]);
+		if (p.subtype != 2) {
+			Serial.print(p.subtype);
+		}
+		cursor += p.len();
 	}
 
 }
