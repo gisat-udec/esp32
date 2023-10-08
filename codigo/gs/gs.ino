@@ -12,4 +12,5 @@ void setup() {
 
 IRAM_ATTR void loop() {
 	vTaskDelay(1000);
+	eth::send();
 }

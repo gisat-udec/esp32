@@ -1,4 +1,5 @@
 #pragma once
+#include <asio.hpp>
 
 #define PORT 27015
 
@@ -11,5 +12,5 @@
 
 namespace eth {
 	void init();
-	static void tcp_task(void *pvParameters);
+	void send();
 }
