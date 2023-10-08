@@ -1,9 +1,9 @@
 #pragma once
-
 #include <vector>
 #include <esp_wifi.h>
-
 #include "packet.hpp"
+
+#define MTU 1500
 
 constexpr uint8_t address1[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 constexpr uint8_t address2[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };

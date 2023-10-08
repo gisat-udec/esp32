@@ -1,6 +1,7 @@
 {
-	"board": "esp32:esp32:esp32cam",
-	"port": "COM15",
-	"sketch": "gs.ino",
-	"output": "./build"
+    "board": "esp32:esp32:esp32",
+    "port": "COM18",
+    "sketch": "gs.ino",
+    "output": "./build",
+    "configuration": "JTAGAdapter=default,PSRAM=enabled,PartitionScheme=app3M_fat9M_16MB,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=16M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=debug,EraseFlash=none"
 }

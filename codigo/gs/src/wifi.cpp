@@ -3,14 +3,9 @@
 #include <freertos/task.h>
 #include <esp_wifi.h>
 #include <esp_private/wifi.h>
-
-#include <vector>
 #include <cstring>
-
 #include "packet.hpp"
 #include "wifi.hpp"
-
-#define MTU 1500
 
 TaskHandle_t handle;
 uint8_t tx_buf[MTU];
@@ -47,14 +42,16 @@ IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
 	if (std::memcmp(&packet->payload[10], address2, 6) != 0) { return; }
 	if (std::memcmp(&packet->payload[16], address3, 6) != 0) { return; }
 
-	// Enviar por serial
+	// Enviar por ethernet
 	const int payloadlen = packet->rx_ctrl.sig_len - 4;
 	int cursor = sizeof(dot11_header);
 	while (cursor < payloadlen - 1) {
 		Packet p(&packet->payload[cursor]);
-		if (p.subtype != 2) {
-			Serial.write("esp32-sat");
-			Serial.write(&packet->payload[cursor], p.len());
+		if (p.subtype == 1) {
+			//Serial.print("\npacket\n");
+			for (int i = 0; i < p.data_len(); i++) {
+				//Serial.print(*(p.data_ptr() + i), HEX);
+			}
 		}
 		cursor += p.len();
 	}
