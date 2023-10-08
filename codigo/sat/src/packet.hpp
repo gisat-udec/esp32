@@ -1,5 +1,4 @@
 #pragma once
-
 #include <memory>
 
 enum struct PacketType : uint8_t {

@@ -1,15 +1,9 @@
 #include <Arduino.h>
-#include <FreeRTOS/FreeRTOS.h>
-#include <FreeRTOS/task.h>
+#include <freertos/FreeRTOS.h>
 #include <esp_camera.h>
-
-#include <vector>
 #include <numeric>
-#include <mutex>
-
-#include "../fec.h"
-#include "../packet.hpp"
 #include "sensor.hpp"
+#include "../fec.h"
 
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
@@ -28,7 +22,9 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-void Camera_c::thread() {
+int frame;
+
+void Camera_c::setup() {
 	camera_config_t config;
 	config.ledc_channel = LEDC_CHANNEL_0;
 	config.ledc_timer = LEDC_TIMER_0;
@@ -57,70 +53,55 @@ void Camera_c::thread() {
 	sensor_t *sensor = esp_camera_sensor_get();
 	sensor->set_framesize(sensor, config.frame_size);
 	sensor->set_saturation(sensor, 0);
-	int frame = 0;
-	while (1) {
-		camera_fb_t *fb = esp_camera_fb_get();
-		typedef uint8_t id;
-		const size_t CHUNK_DATA_SIZE = 1000;
-		const size_t crc_count = 4;
-		struct chunk_params {
-			uint8_t k;
-			uint8_t m;
-		};
-		typedef std::array<uint8_t, CHUNK_DATA_SIZE> chunk_data;
-		struct chunk_t {
-			chunk_params params;
-			uint8_t id;
-			chunk_data data;
-		};
-		const int chunks = std::ceil(fb->len / CHUNK_DATA_SIZE);
-		fec_t *fec = fec_new(chunks, chunks + crc_count);
-		uint8_t *src[chunks];
-		uint8_t *crc[crc_count];
-		uint8_t crc_buffer[crc_count * CHUNK_DATA_SIZE];
-		for (int i = 0; i < chunks; i++) {
-			src[i] = &fb->buf[i * CHUNK_DATA_SIZE];
-		}
-		for (int i = 0; i < crc_count; i++) {
-			crc[i] = &crc_buffer[i * CHUNK_DATA_SIZE];
-		}
-		std::vector<u_int> num(chunks + crc_count);
-		std::iota(num.begin(), num.end(), 0);
-		fec_encode(fec, src, crc, num.data() + chunks, crc_count, CHUNK_DATA_SIZE);
-		for (int i = 0; i < chunks + crc_count; i++) {
-			std::array<uint8_t, 1000> chunk{};
-			if (i < chunks) {
-				std::copy_n(src[i], CHUNK_DATA_SIZE, chunk.data());
-			} else {
-				std::copy_n(crc[i - chunks], CHUNK_DATA_SIZE, chunk.data());
-			}
-			_data.reset(new container{
-				frame,
-				chunks,
-				chunks + crc_count,
-				num.at(i),
-				std::move(chunk)
-				});
-			vTaskSuspend(NULL);
-		}
-		esp_camera_fb_return(fb);
-		fec_free(fec);
-		frame++;
-	}
+	frame = 0;
 }
 
-bool Camera_c::available() {
-	return (eTaskGetState(handle) == eSuspended);
-}
-
-Packet Camera_c::get() {
-	Packet packet{
-		static_cast<uint8_t>(PacketType::Sensor),
-		static_cast<uint8_t>(type),
-		sizeof(container),
-		std::unique_ptr<uint8_t[]>(new uint8_t[sizeof(container)]())
+void Camera_c::loop() {
+	camera_fb_t *fb = esp_camera_fb_get();
+	typedef uint8_t id;
+	const size_t CHUNK_DATA_SIZE = 1000;
+	const size_t crc_count = 4;
+	struct chunk_params {
+		uint8_t k;
+		uint8_t m;
 	};
-	std::copy_n(reinterpret_cast<uint8_t *>(_data.get()), sizeof(container), packet.data.get());
-	vTaskResume(handle);
-	return packet;
+	typedef std::array<uint8_t, CHUNK_DATA_SIZE> chunk_data;
+	struct chunk_t {
+		chunk_params params;
+		uint8_t id;
+		chunk_data data;
+	};
+	const int chunks = std::ceil(fb->len / CHUNK_DATA_SIZE);
+	fec_t *fec = fec_new(chunks, chunks + crc_count);
+	uint8_t *src[chunks];
+	uint8_t *crc[crc_count];
+	uint8_t crc_buffer[crc_count * CHUNK_DATA_SIZE];
+	for (int i = 0; i < chunks; i++) {
+		src[i] = &fb->buf[i * CHUNK_DATA_SIZE];
+	}
+	for (int i = 0; i < crc_count; i++) {
+		crc[i] = &crc_buffer[i * CHUNK_DATA_SIZE];
+	}
+	std::vector<u_int> num(chunks + crc_count);
+	std::iota(num.begin(), num.end(), 0);
+	fec_encode(fec, src, crc, num.data() + chunks, crc_count, CHUNK_DATA_SIZE);
+	for (int i = 0; i < chunks + crc_count; i++) {
+		std::array<uint8_t, 1000> chunk{};
+		if (i < chunks) {
+			std::copy_n(src[i], CHUNK_DATA_SIZE, chunk.data());
+		} else {
+			std::copy_n(crc[i - chunks], CHUNK_DATA_SIZE, chunk.data());
+		}
+		container data = {
+			frame,
+			chunks,
+			chunks + crc_count,
+			num.at(i),
+			std::move(chunk)
+		};
+		xQueueSend(queue, &data, portMAX_DELAY);
+	}
+	esp_camera_fb_return(fb);
+	fec_free(fec);
+	frame++;
 }

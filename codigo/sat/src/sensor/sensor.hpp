@@ -1,16 +1,9 @@
 #pragma once
-
 #include <vector>
 #include <tuple>
 #include <string>
 #include <memory>
-
 #include "../packet.hpp"
-
-#define BNO080_STACK 1800
-#define BME680_STACK 3000
-#define CAMERA_STACK 6400
-#define GPS_STACK 3000
 
 enum struct SensorType : uint8_t {
 	BNO080,
@@ -23,17 +16,29 @@ typedef std::pair<std::string, std::vector<std::string>> info_pair;
 
 class Sensor {
 protected:
-	TaskHandle_t handle;
-	const SensorType type;
-	template<class T>
-	static void _thread(void *parm) {
-		static_cast<T *>(parm)->thread();
-	}
+	QueueHandle_t queue;
+	const size_t payload;
 public:
-	Sensor(SensorType type) : type(type) {};
-	virtual bool available();
-	virtual Packet get();
-	virtual info_pair info();
+	const SensorType type;
+	Sensor(SensorType type, size_t payload) : type(type), payload(payload) {
+		queue = xQueueCreate(1, payload);
+	};
+	virtual void setup() = 0;
+	virtual void loop() = 0;
+	virtual info_pair info() = 0;
+	bool available() {
+		return (uxQueueMessagesWaiting(queue) > 0);
+	}
+	Packet get() {
+		Packet packet{
+			static_cast<uint8_t>(PacketType::Sensor),
+			static_cast<uint8_t>(type),
+			payload,
+			std::unique_ptr<uint8_t[]>(new uint8_t[payload]())
+		};
+		xQueueReceive(queue, packet.data.get(), portMAX_DELAY);
+		return packet;
+	}
 };
 
 class BNO080_c : public Sensor {
@@ -49,14 +54,10 @@ private:
 		float_t,
 		float_t
 	> container;
-	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
-	BNO080_c() : Sensor(SensorType::BNO080) {
-		xTaskCreatePinnedToCore(_thread<BNO080_c>, name.c_str(), BNO080_STACK, this, 2, &handle, 1);
-	};
-	void thread();
-	bool available() override;
-	Packet get() override;
+	BNO080_c() : Sensor(SensorType::BNO080, sizeof(container)) {};
+	void setup() override;
+	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
 };
 
@@ -73,16 +74,13 @@ private:
 		float_t,
 		float_t
 	> container;
-	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
-	BME680_c() : Sensor(SensorType::BME680) {
-		xTaskCreatePinnedToCore(_thread<BME680_c>, name.c_str(), BME680_STACK, this, 2, &handle, 1);
-	};
-	void thread();
-	bool available() override;
-	Packet get() override;
+	BME680_c() : Sensor(SensorType::BME680, sizeof(container)) {}
+	void setup() override;
+	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
 };
+
 
 class Camera_c : public Sensor {
 private:
@@ -101,14 +99,10 @@ private:
 		uint8_t,
 		std::array<uint8_t, 1000>
 	> container;
-	std::unique_ptr<container> _data;
 public:
-	Camera_c() : Sensor(SensorType::OV2640) {
-		xTaskCreatePinnedToCore(_thread<Camera_c>, name.c_str(), CAMERA_STACK, this, 1, &handle, 0);
-	};
-	void thread();
-	bool available() override;
-	Packet get() override;
+	Camera_c() : Sensor(SensorType::OV2640, sizeof(container)) {};
+	void setup() override;
+	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
 };
 
@@ -127,11 +121,8 @@ private:
 	> container;
 	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
-	GPS_c() : Sensor(SensorType::GPS) {
-		xTaskCreatePinnedToCore(_thread<GPS_c>, name.c_str(), GPS_STACK, this, 2, &handle, 1);
-	};
-	void thread();
-	bool available() override;
-	Packet get() override;
+	GPS_c() : Sensor(SensorType::GPS, sizeof(container)) {};
+	void setup() override;
+	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
 };
