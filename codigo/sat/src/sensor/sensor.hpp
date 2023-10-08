@@ -18,9 +18,11 @@ class Sensor {
 protected:
 	QueueHandle_t queue;
 	const size_t payload;
+	const bool peek;
 public:
 	const SensorType type;
-	Sensor(SensorType type, size_t payload) : type(type), payload(payload) {
+	Sensor(SensorType type, size_t payload, bool peek)
+		: type(type), payload(payload), peek(peek) {
 		queue = xQueueCreate(1, payload);
 	};
 	virtual void setup() = 0;
@@ -36,7 +38,11 @@ public:
 			payload,
 			std::unique_ptr<uint8_t[]>(new uint8_t[payload]())
 		};
-		xQueueReceive(queue, packet.data.get(), portMAX_DELAY);
+		if (peek) {
+			xQueuePeek(queue, packet.data.get(), portMAX_DELAY);
+		} else {
+			xQueueReceive(queue, packet.data.get(), portMAX_DELAY);
+		}
 		return packet;
 	}
 };
@@ -55,7 +61,7 @@ private:
 		float_t
 	> container;
 public:
-	BNO080_c() : Sensor(SensorType::BNO080, sizeof(container)) {};
+	BNO080_c() : Sensor(SensorType::BNO080, sizeof(container), false) {};
 	void setup() override;
 	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
@@ -75,7 +81,7 @@ private:
 		float_t
 	> container;
 public:
-	BME680_c() : Sensor(SensorType::BME680, sizeof(container)) {}
+	BME680_c() : Sensor(SensorType::BME680, sizeof(container), true) {}
 	void setup() override;
 	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
@@ -100,7 +106,7 @@ private:
 		std::array<uint8_t, 1000>
 	> container;
 public:
-	Camera_c() : Sensor(SensorType::OV2640, sizeof(container)) {};
+	Camera_c() : Sensor(SensorType::OV2640, sizeof(container), false) {};
 	void setup() override;
 	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
@@ -121,7 +127,7 @@ private:
 	> container;
 	QueueHandle_t queue = xQueueCreate(1, sizeof(container));
 public:
-	GPS_c() : Sensor(SensorType::GPS, sizeof(container)) {};
+	GPS_c() : Sensor(SensorType::GPS, sizeof(container), true) {};
 	void setup() override;
 	void loop() override;
 	info_pair info() override { return std::make_pair(name, vars); };
