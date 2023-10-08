@@ -10,7 +10,7 @@
 TaskHandle_t handle;
 uint8_t tx_buf[MTU];
 
-void wifi() {
+void wifi::init() {
 	ESP_ERROR_CHECK(esp_wifi_internal_set_log_level(WIFI_LOG_NONE));
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -34,7 +34,7 @@ void wifi() {
 	handle = xTaskGetCurrentTaskHandle();
 }
 
-IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
+IRAM_ATTR void wifi::rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
 	auto *packet = reinterpret_cast<wifi_promiscuous_pkt_t *>(buf);
 
 	// Filtrar paquetes por MAC
@@ -58,6 +58,6 @@ IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
 
 }
 
-IRAM_ATTR void tx_callback(uint8_t ifidx, uint8_t *data, uint16_t *data_len, bool txStatus) {
+IRAM_ATTR void wifi::tx_callback(uint8_t ifidx, uint8_t *data, uint16_t *data_len, bool txStatus) {
 	xTaskNotifyGive(handle);
 }

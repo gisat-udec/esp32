@@ -19,7 +19,9 @@ const uint8_t dot11_header[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00		/* random padding that happens to work*/
 };
 
-void wifi();
-IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type);
-IRAM_ATTR void tx_callback(uint8_t ifidx, uint8_t *data, uint16_t *data_len, bool txStatus);
-IRAM_ATTR void send(const std::vector<Packet> &packets);
+namespace wifi {
+	void init();
+	IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type);
+	IRAM_ATTR void tx_callback(uint8_t ifidx, uint8_t *data, uint16_t *data_len, bool txStatus);
+	IRAM_ATTR void send(const std::vector<Packet> &packets);
+}
