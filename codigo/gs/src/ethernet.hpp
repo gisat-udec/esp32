@@ -1,5 +1,6 @@
 #pragma once
 #include <asio.hpp>
+#include "packet.hpp"
 
 #define PORT 27015
 
@@ -12,5 +13,6 @@
 
 namespace eth {
 	void init();
-	void send();
+	void send(uint8_t *buf, size_t len);
+	void send(Packet packet);
 }

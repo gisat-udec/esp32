@@ -1,19 +1,30 @@
 #pragma once
-
 #include <memory>
+#define MTU 1500
 
-enum struct PacketType : uint8_t {
-	Sensor
+enum PacketType : uint8_t {
+	Sensor,
+	Stats
 };
 
 struct Packet {
 	Packet(uint8_t type, uint8_t subtype, uint16_t length, std::unique_ptr<uint8_t[]> data) :
 		type(type), subtype(subtype), length(length), data(std::move(data)) {
 	};
-	Packet(uint8_t *buf) {
-		std::copy_n(buf, header_len(), &type);
+	Packet(uint8_t type, uint8_t subtype, uint16_t length) :
+		type(type), subtype(subtype), length(length) {
+		data.reset(new uint8_t[length]());
+	}
+	Packet(uint8_t type, uint8_t subtype, uint16_t length, void *buf) :
+		type(type), subtype(subtype), length(length) {
+		data.reset(new uint8_t[length]());
+		std::copy_n((uint8_t *)buf, length, data.get());
+	}
+	Packet(void *buf) {
+		uint8_t *_buf = reinterpret_cast<uint8_t *>(buf);
+		std::copy_n(_buf, header_len(), &type);
 		data.reset(new uint8_t[data_len()]());
-		std::copy_n(&buf[header_len()], data_len(), data.get());
+		std::copy_n(&_buf[header_len()], data_len(), data.get());
 	};
 	uint8_t type;
 	uint8_t subtype;
@@ -24,4 +35,10 @@ struct Packet {
 	const size_t len() const { return (header_len() + data_len()); };
 	const uint8_t *header_ptr() const { return reinterpret_cast<const uint8_t *>(&type); };
 	const uint8_t *data_ptr() const { return reinterpret_cast<const uint8_t *>(data.get()); };
+	std::shared_ptr<uint8_t[]> buf() const {
+		std::shared_ptr<uint8_t[]> buffer(new uint8_t[len()]());
+		std::copy_n(&type, header_len(), buffer.get());
+		std::copy_n(data.get(), data_len(), &(buffer.get()[header_len()]));
+		return buffer;
+	};
 };

@@ -5,13 +5,19 @@
 #include <esp_netif.h>
 #include <esp_event.h>
 #include "ethernet.hpp"
+#include "packet.hpp"
 
 using asio::ip::udp;
 
 namespace eth {
-	asio::io_context *io_context;
-	udp::socket *socket;
+	asio::io_context *io_context = nullptr;
+	udp::socket *socket = nullptr;
 	static esp_eth_handle_t s_eth_handle = NULL;
+	char rx_buffer[MTU];
+	udp::endpoint client;
+	void tx_callback(std::error_code ec, std::size_t bytes_sent);
+	void rx_callback(std::error_code ec, std::size_t bytes_recv);
+	void recv();
 }
 
 void eth::init() {
@@ -59,19 +65,36 @@ void eth::init() {
 	// start udp server
 	io_context = new asio::io_context();
 	socket = new udp::socket(*io_context, udp::endpoint(udp::v4(), PORT));
-	xTaskCreate([](void *_socket) -> void {
-		udp::socket *socket = static_cast<udp::socket *>(_socket);
-		while (1) {
-			char data[1500];
-			udp::endpoint client;
-			socket->receive_from(asio::buffer(data, 1500), client);
-			std::cout << data << std::endl;
-		}
-		}, "asio_recv", 4000, socket, 1, nullptr);
+	recv();
+	xTaskCreate([](void *io_context) -> void {
+		static_cast<asio::io_context *>(io_context)->run();
+		}, "asio_io", 6000, io_context, 1, nullptr);
 }
 
-void eth::send(void *ptr, size_t len) {
-	socket->send_to(
-		asio::buffer(ptr, len),
-		udp::endpoint(asio::ip::address_v4::broadcast(), PORT));
+void eth::tx_callback(std::error_code ec, std::size_t bytes_sent) {
+
+}
+
+void eth::rx_callback(std::error_code ec, std::size_t bytes_recv) {
+
+	recv();
+}
+
+void eth::send(Packet packet) {
+	if (socket) {
+		std::shared_ptr<uint8_t[]> buffer = packet.buf();
+		socket->async_send_to(
+			asio::buffer(buffer.get(), packet.len()),
+			udp::endpoint(asio::ip::address_v4::broadcast(), PORT),
+			[buffer](std::error_code ec, std::size_t bytes_sent) {
+				tx_callback(ec, bytes_sent);
+			});
+	}
+}
+
+void eth::recv() {
+	socket->async_receive_from(
+		asio::buffer(rx_buffer, MTU),
+		client,
+		rx_callback);
 }

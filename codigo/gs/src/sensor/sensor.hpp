@@ -5,7 +5,7 @@
 #include <memory>
 #include "../packet.hpp"
 
-enum struct SensorType : uint8_t {
+enum SensorType : uint8_t {
 	BNO080,
 	BME680,
 	OV2640,
@@ -32,12 +32,7 @@ public:
 		return (uxQueueMessagesWaiting(queue) > 0);
 	}
 	Packet get() {
-		Packet packet{
-			static_cast<uint8_t>(PacketType::Sensor),
-			static_cast<uint8_t>(type),
-			payload,
-			std::unique_ptr<uint8_t[]>(new uint8_t[payload]())
-		};
+		Packet packet(PacketType::Sensor, type, payload);
 		if (peek) {
 			xQueuePeek(queue, packet.data.get(), portMAX_DELAY);
 		} else {

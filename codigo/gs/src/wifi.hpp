@@ -3,8 +3,6 @@
 #include <esp_wifi.h>
 #include "packet.hpp"
 
-#define MTU 1500
-
 constexpr uint8_t address1[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 constexpr uint8_t address2[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
 constexpr uint8_t address3[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
@@ -20,8 +18,8 @@ const uint8_t dot11_header[] = {
 };
 
 namespace wifi {
+	extern std::atomic<int8_t> rssi;
+	extern std::atomic<uint32_t> rx_bytes;
 	void init();
-	IRAM_ATTR void rx_callback(void *buf, wifi_promiscuous_pkt_type_t type);
-	IRAM_ATTR void tx_callback(uint8_t ifidx, uint8_t *data, uint16_t *data_len, bool txStatus);
 	IRAM_ATTR void send(const std::vector<Packet> &packets);
 }
