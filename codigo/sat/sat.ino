@@ -33,7 +33,6 @@ void setup() {
 
 	delay(2);
 	wifi();
-	pinMode(LED_PIN, OUTPUT);
 }
 
 std::vector<Packet> tosend;
@@ -42,9 +41,6 @@ void loop() {
 	camera_task->get(tosend);
 	gps_task->get(tosend);
 	if (!tosend.empty()) {
-		for (Packet &packet : tosend) {
-			Serial.print(packet.subtype);
-		}
 		send(tosend);
 		tosend.clear();
 	}

@@ -61,7 +61,7 @@ IRAM_ATTR void send(const std::vector<Packet> &packets) {
 		auto next_packet = std::next(packet);
 		if (next_packet == packets.end() || len + next_packet->len() > MTU) {
 			ESP_ERROR_CHECK(esp_wifi_80211_tx(WIFI_IF_STA, tx_buf, len, false));
-			ulTaskNotifyTake(false, pdMS_TO_TICKS(1000));
+			ulTaskNotifyTake(true, portMAX_DELAY);
 			len = sizeof(dot11_header);
 		}
 	}
