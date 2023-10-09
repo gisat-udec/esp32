@@ -35,8 +35,8 @@ struct Packet {
 	const size_t len() const { return (header_len() + data_len()); };
 	const uint8_t *header_ptr() const { return reinterpret_cast<const uint8_t *>(&type); };
 	const uint8_t *data_ptr() const { return reinterpret_cast<const uint8_t *>(data.get()); };
-	std::shared_ptr<uint8_t[]> buf() const {
-		std::shared_ptr<uint8_t[]> buffer(new uint8_t[len()]());
+	std::unique_ptr<uint8_t[]> buf() const {
+		std::unique_ptr<uint8_t[]> buffer(new uint8_t[len()]());
 		std::copy_n(&type, header_len(), buffer.get());
 		std::copy_n(data.get(), data_len(), &(buffer.get()[header_len()]));
 		return buffer;

@@ -82,11 +82,11 @@ void eth::rx_callback(std::error_code ec, std::size_t bytes_recv) {
 
 void eth::send(Packet packet) {
 	if (socket) {
-		std::shared_ptr<uint8_t[]> buffer = packet.buf();
+		std::unique_ptr<uint8_t[]> buffer = packet.buf();
 		socket->async_send_to(
 			asio::buffer(buffer.get(), packet.len()),
 			udp::endpoint(asio::ip::address_v4::broadcast(), PORT),
-			[buffer](std::error_code ec, std::size_t bytes_sent) {
+			[buffer = std::move(buffer)](std::error_code ec, std::size_t bytes_sent) {
 				tx_callback(ec, bytes_sent);
 			});
 	}
