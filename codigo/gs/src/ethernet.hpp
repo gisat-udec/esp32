@@ -12,7 +12,6 @@
 #define ETH_MDIO_PIN    18
 
 namespace eth {
-	void init();
-	void send(uint8_t *buf, size_t len);
-	void send(Packet packet);
+    void init();
+    void send(Packet packet);
 }

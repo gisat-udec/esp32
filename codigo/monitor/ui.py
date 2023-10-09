@@ -1,11 +1,14 @@
 import asyncio
 import tkinter as tk
+import time
+from tkinter import messagebox
+from collections import deque
 
 
 class UI:
     root = tk.Tk()
     root.title("Monitor")
-    # setting window size
+
     width = 300
     height = 145
     screenwidth = root.winfo_screenwidth()
@@ -35,13 +38,13 @@ class UI:
 
     lCalidad = tk.Label(root)
     lCalidad["anchor"] = "w"
-    lCalidad["text"] = "label"
-    lCalidad.place(x=240, y=10, width=50, height=25)
+    lCalidad["text"] = "-127 dBm"
+    lCalidad.place(x=230, y=10, width=60, height=25)
 
     lVelocidad = tk.Label(root)
     lVelocidad["anchor"] = "w"
-    lVelocidad["text"] = "label"
-    lVelocidad.place(x=240, y=40, width=50, height=25)
+    lVelocidad["text"] = "0 mbps"
+    lVelocidad.place(x=230, y=40, width=60, height=25)
 
     bGrabar = tk.Button(root)
     bGrabar["text"] = "Grabar"
@@ -52,7 +55,31 @@ class UI:
     lEstado["text"] = "En espera"
     lEstado.place(x=90, y=110, width=70, height=25)
 
+    # Registro de bytes recibidos en que tiempo
+    rx_log = deque()
+
+    def __init__(self):
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.bind("<<stats_update>>", self.stats_update)
+
+    def on_closing(self):
+        # if messagebox.askokcancel("Salir", "Seguro que desea salir?"):
+        self.root.destroy()
+        asyncio.get_event_loop().stop()
+
+    def stats_update(self, stats):
+        self.lCalidad["text"] = "{0} dBm".format(stats["rssi"])
+        self.rx_log.append((stats["bytes"], time.time()))
+
     async def loop(self):
         while (True):
+            sec_ago = time.time() - 1
+            for i in range(0, len(self.rx_log)):
+                if (self.rx_log[0][1] < sec_ago):
+                    self.rx_log.popleft()
+            rx_bytes = 0
+            for i in range(0, len(self.rx_log)):
+                rx_bytes += self.rx_log[i][0]
+            self.lVelocidad["text"] = "{0:.2f} mbps".format(rx_bytes / 125000)
             self.root.update()
             await asyncio.sleep(1/60)

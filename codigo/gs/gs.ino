@@ -7,23 +7,19 @@
 
 
 void setup() {
-	Serial.begin(115200);
-	ESP_ERROR_CHECK(esp_event_loop_create_default());
-	wifi::init();
-	eth::init();
-	TimerHandle_t stats_timer = xTimerCreate("stats timer", pdMS_TO_TICKS(1000), pdTRUE, NULL,
-		[](TimerHandle_t xTimer) {
-			std::tuple<int8_t, uint32_t> stats{
-				wifi::rssi,
-				wifi::rx_bytes
-			};
-			eth::send(Packet(PacketType::Stats, 0, sizeof(stats), &stats));
-			wifi::rssi = UINT8_MAX;
-			wifi::rx_bytes = 0;
-		});
-	xTimerStart(stats_timer, 0);
+    Serial.begin(115200);
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    wifi::init();
+    eth::init();
+    // timer regular para reportar conexión a python
+    TimerHandle_t ping_timer = xTimerCreate("ping timer", pdMS_TO_TICKS(1000), pdTRUE, NULL,
+        [](TimerHandle_t xTimer) {
+            int time = millis();
+            eth::send(Packet(PacketType::Ping, 0, sizeof(time), &time));
+        });
+    xTimerStart(ping_timer, 0);
 }
 
 IRAM_ATTR void loop() {
-	vTaskDelay(1000);
+    vTaskDelay(1000);
 }
