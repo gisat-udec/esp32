@@ -3,11 +3,14 @@ import tkinter as tk
 import time
 from tkinter import messagebox
 from collections import deque
+from camera import Camera
 
 
 class UI:
     root = tk.Tk()
     root.title("Monitor")
+
+    camera_window = False
 
     width = 300
     height = 145
@@ -61,6 +64,7 @@ class UI:
     def __init__(self):
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.bind("<<stats_update>>", self.stats_update)
+        self.bCamara["command"] = self.new_camera_window
 
     def on_closing(self):
         # if messagebox.askokcancel("Salir", "Seguro que desea salir?"):
@@ -70,6 +74,9 @@ class UI:
     def stats_update(self, stats):
         self.lCalidad["text"] = "{0} dBm".format(stats["rssi"])
         self.rx_log.append((stats["bytes"], time.time()))
+
+    def new_camera_window(self):
+        self.camera_window = Camera(self)
 
     async def loop(self):
         while (True):

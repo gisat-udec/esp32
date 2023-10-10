@@ -1,5 +1,7 @@
 import asyncio
+import time
 from struct import *
+from zfec.easyfec import Decoder
 
 
 class Connection:
@@ -23,7 +25,10 @@ class Ethernet:
             lambda: Connection(self),
             local_addr=('0.0.0.0', 27015))
 
+    camera_chunks = dict()
+
     def tx_callback(self, data, addr):
+        now = time.time()
         # Leer cabezal del paquete
         packet_header_len = 4
         header = unpack("BBH", data[0:packet_header_len])
@@ -49,7 +54,32 @@ class Ethernet:
                         k = camera_header[2]
                         frame = camera_header[4]
                         chunk = data[-chunk_len - header_len:-header_len]
-                        print(len(chunk))
+                        if not self.camera_chunks.get(frame):
+                            self.camera_chunks[frame] = {
+                                "time": now,
+                                "done": False,
+                                "k": k,
+                                "v": v,
+                                "chunks": dict()
+                            }
+                        if self.camera_chunks[frame]["done"]:
+                            return
+                        if not self.camera_chunks[frame]["chunks"].get(id):
+                            self.camera_chunks[frame]["chunks"][id] = chunk
+                        if len(self.camera_chunks[frame]["chunks"]) >= k:
+                            self.camera_chunks[frame]["done"] = True
+                            dec = Decoder(k, v)
+                            blocks = list(
+                                self.camera_chunks[frame]["chunks"].values())
+                            blocknums = list(
+                                self.camera_chunks[frame]["chunks"].keys())
+                            decoded = dec.decode(blocks, blocknums, padlen=0)
+                            if (self.ui.camera_window):
+                                self.ui.camera_window.display(decoded)
+                        # Eliminar frames antiguos
+                        for frame in self.camera_chunks.copy():
+                            if self.camera_chunks[frame]["time"] < now - 1:
+                                del self.camera_chunks[frame]
             # Estadisticas
             case 1:
                 payload = unpack("Ll", data[packet_header_len:])
@@ -61,5 +91,5 @@ class Ethernet:
             # Ping
             case 2:
                 payload = unpack("L", data[packet_header_len:])
-                time = payload[0]
+                t = payload[0]
                 # print(time)
