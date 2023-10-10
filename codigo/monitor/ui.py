@@ -4,6 +4,7 @@ import time
 from tkinter import messagebox
 from collections import deque
 from camera import Camera
+from sensor import Sensor
 
 
 class UI:
@@ -11,6 +12,7 @@ class UI:
     root.title("Monitor")
 
     camera_window = False
+    sensor_window = False
 
     width = 300
     height = 145
@@ -28,6 +30,10 @@ class UI:
     bGPS = tk.Button(root)
     bGPS["text"] = "GPS"
     bGPS.place(x=10, y=40, width=70, height=25)
+
+    bSensores = tk.Button(root)
+    bSensores["text"] = "Sensores"
+    bSensores.place(x=10, y=70, width=70, height=25)
 
     ilCalidad = tk.Label(root)
     ilCalidad["anchor"] = "w"
@@ -65,6 +71,7 @@ class UI:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.bind("<<stats_update>>", self.stats_update)
         self.bCamara["command"] = self.new_camera_window
+        self.bSensores["command"] = self.new_sensor_window
 
     def on_closing(self):
         # if messagebox.askokcancel("Salir", "Seguro que desea salir?"):
@@ -76,7 +83,12 @@ class UI:
         self.rx_log.append((stats["bytes"], time.time()))
 
     def new_camera_window(self):
-        self.camera_window = Camera(self)
+        if not self.camera_window:
+            self.camera_window = Camera(self)
+
+    def new_sensor_window(self):
+        if not self.sensor_window:
+            self.sensor_window = Sensor(self)
 
     async def loop(self):
         while (True):

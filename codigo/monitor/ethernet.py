@@ -44,6 +44,24 @@ class Ethernet:
             # Sensor
             case 0:
                 match packet_subtype:
+                    # BNO080
+                    case 0:
+                        payload = unpack("<fff", data[packet_header_len:])
+                        x = payload[2]
+                        y = payload[1]
+                        z = payload[0]
+                        if (self.ui.sensor_window):
+                            self.ui.sensor_window.update_bno(x, y, z)
+                    # BME680
+                    case 1:
+                        payload = unpack("<fff", data[packet_header_len:])
+                        temperature = payload[2]
+                        pressure = payload[1]
+                        humidity = payload[0]
+                        if (self.ui.sensor_window):
+                            self.ui.sensor_window.update_bme(
+                                temperature, pressure, humidity)
+                    # Camara
                     case 2:
                         header_len = 8
                         chunk_len = 1000
