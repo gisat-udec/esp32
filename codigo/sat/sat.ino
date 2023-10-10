@@ -32,7 +32,7 @@ void setup() {
     gps_task->run(0);
 
     delay(2);
-    wifi();
+    wifi::init();
 }
 
 std::vector<Packet> tosend;
@@ -41,7 +41,7 @@ void loop() {
     camera_task->get(tosend);
     gps_task->get(tosend);
     if (!tosend.empty()) {
-        send(tosend);
+        wifi::send(tosend);
         tosend.clear();
     }
 }
