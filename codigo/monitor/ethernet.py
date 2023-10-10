@@ -54,7 +54,8 @@ class Ethernet:
                             self.ui.sensor_window.update_bno(x, y, z)
                     # BME680
                     case 1:
-                        payload = unpack("<fff", data[packet_header_len:])
+                        payload = unpack("<ffff", data[packet_header_len:])
+                        read_time = payload[3]
                         temperature = payload[2]
                         pressure = payload[1]
                         humidity = payload[0]
@@ -98,6 +99,12 @@ class Ethernet:
                         for frame in self.camera_chunks.copy():
                             if self.camera_chunks[frame]["time"] < now - 1:
                                 del self.camera_chunks[frame]
+                    case 3:
+                        payload = unpack("<ffff", data[packet_header_len:])
+                        read_time = payload[3]
+                        latitude = payload[2]
+                        longitude = payload[1]
+                        altitude = payload[0]
             # Estadisticas
             case 1:
                 payload = unpack("Ll", data[packet_header_len:])
