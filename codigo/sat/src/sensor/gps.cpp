@@ -19,7 +19,7 @@ void GPS_c::loop() {
                 gps.location.lng(),
                 gps.altitude.meters(),
             };
-            xQueueOverwrite(queue, &data);
+            reading(data, false);
             //}
         }
     }

@@ -15,26 +15,48 @@ enum struct SensorType : uint8_t {
 typedef std::pair<std::string, std::vector<std::string>> info_pair;
 
 struct SensorHeader {
+    SensorHeader(SensorType type, uint32_t time) :
+        type(type), time(time) {
+    };
     SensorType type;
     uint8_t _pad;
     uint16_t _pad2;
     uint32_t time;
 };
 
+template<class SensorPayload>
+struct SensorData {
+    SensorHeader header;
+    SensorPayload payload;
+};
+
 class Sensor {
-protected:
+private:
     QueueHandle_t queue;
+protected:
     const size_t payload;
     const bool peek;
 public:
     const SensorType type;
     Sensor(SensorType type, size_t payload, bool peek)
-        : type(type), payload(payload), peek(peek) {
-        queue = xQueueCreate(1, payload);
+        : type(type), payload(payload + sizeof(SensorHeader)), peek(peek) {
+        queue = xQueueCreate(1, payload + sizeof(SensorHeader));
     };
     virtual void setup() = 0;
     virtual void loop() = 0;
     virtual info_pair info() = 0;
+    template<class Payload>
+    void reading(Payload &payload, bool block) {
+        SensorData<Payload> data{
+            { type, pdTICKS_TO_MS(xTaskGetTickCount()) },
+            std::move(payload)
+        };
+        if (block) {
+            xQueueSend(queue, &data, portMAX_DELAY);
+        } else {
+            xQueueOverwrite(queue, &data);
+        }
+    }
     bool available() {
         return (uxQueueMessagesWaiting(queue) > 0);
     }

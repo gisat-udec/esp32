@@ -6,17 +6,17 @@
 BNO080 imu;
 
 void BNO080_c::setup() {
-	imu.begin();
-	imu.enableRotationVector(10);
+    imu.begin();
+    imu.enableRotationVector(10);
 }
 
 void BNO080_c::loop() {
-	if (imu.dataAvailable() == true) {
-		container data = {
-			imu.getQuatI(),
-			imu.getQuatJ(),
-			imu.getQuatK()
-		};
-		xQueueOverwrite(queue, &data);
-	}
+    if (imu.dataAvailable() == true) {
+        container data = {
+            imu.getQuatI(),
+            imu.getQuatJ(),
+            imu.getQuatK()
+        };
+        reading(data, false);
+    }
 }

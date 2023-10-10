@@ -30,10 +30,11 @@ class Ethernet:
     def tx_callback(self, data, addr):
         now = time.time()
         # Leer cabezal del paquete
+        packet_header_start = 0
         packet_header_len = 4
-        header = unpack("BBH", data[0:packet_header_len])
+        packet_header_end = packet_header_start + packet_header_len
+        header = unpack("BBH", data[packet_header_start:packet_header_end])
         packet_type = header[0]
-        packet_subtype = header[1]
         packet_payload_len = header[2]
         if (packet_payload_len != len(data) - packet_header_len):
             print("Error: Se esperaban %d bytes de datos en el paquete, se obtuvieron %d bytes.",
@@ -43,10 +44,17 @@ class Ethernet:
         match packet_type:
             # Sensor
             case 0:
-                match packet_subtype:
+                sensor_header_start = packet_header_end
+                sensor_header_len = 8
+                sensor_header_end = sensor_header_start + sensor_header_len
+                sensor_header = unpack(
+                    "BbhI", data[sensor_header_start:sensor_header_end])
+                sensor_type = sensor_header[0]
+                sensor_time = sensor_header[3]
+                match sensor_type:
                     # BNO080
                     case 0:
-                        payload = unpack("<fff", data[packet_header_len:])
+                        payload = unpack("<fff", data[sensor_header_end:])
                         x = payload[2]
                         y = payload[1]
                         z = payload[0]
@@ -54,7 +62,7 @@ class Ethernet:
                             self.ui.sensor_window.update_bno(x, y, z)
                     # BME680
                     case 1:
-                        payload = unpack("<ffff", data[packet_header_len:])
+                        payload = unpack("<ffff", data[sensor_header_end:])
                         read_time = payload[3]
                         temperature = payload[2]
                         pressure = payload[1]
@@ -100,7 +108,7 @@ class Ethernet:
                             if self.camera_chunks[frame]["time"] < now - 1:
                                 del self.camera_chunks[frame]
                     case 3:
-                        payload = unpack("<ffff", data[packet_header_len:])
+                        payload = unpack("<ffff", data[sensor_header_end:])
                         read_time = payload[3]
                         latitude = payload[2]
                         longitude = payload[1]

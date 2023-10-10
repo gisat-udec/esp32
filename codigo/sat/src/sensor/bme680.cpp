@@ -33,6 +33,6 @@ void BME680_c::loop() {
             iaqSensor.pressure,
             iaqSensor.humidity
         };
-        xQueueOverwrite(queue, &data);
+        reading(data, false);
     }
 }

@@ -79,7 +79,6 @@ IRAM_ATTR void wifi::send(const std::vector<Packet> &packets) {
             len += packet->header_len();
             std::copy_n(packet->data_ptr(), packet->data_len(), &tx_buffer[len]);
             len += packet->data_len();
-            Serial.print((uint8_t)packet->type);
         }
         // send buffer data over wifi if its going to exceed MTU
         auto next_packet = std::next(packet);
