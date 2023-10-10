@@ -7,7 +7,7 @@
 #include "src/sensor/sensor_task.hpp"
 #include "src/wifi.hpp"
 
-#define LED_PIN 33
+#define LED_PIN GPIO_NUM_33
 
 SensorTask *i2c_task;
 SensorTask *camera_task;
@@ -33,6 +33,18 @@ void setup() {
 
     delay(2);
     wifi::init();
+
+    xTaskCreatePinnedToCore([](void *) -> void {
+        gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+        TickType_t wake;
+        const TickType_t freq = pdMS_TO_TICKS(500);
+        while (1) {
+            gpio_set_level(LED_PIN, 0);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            gpio_set_level(LED_PIN, 1);
+            vTaskDelayUntil(&wake, freq);
+        }
+        }, "led flash", configMINIMAL_STACK_SIZE, NULL, 1, nullptr, 0);
 }
 
 std::vector<Packet> tosend;
