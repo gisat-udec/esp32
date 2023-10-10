@@ -14,6 +14,13 @@ enum struct SensorType : uint8_t {
 
 typedef std::pair<std::string, std::vector<std::string>> info_pair;
 
+struct SensorHeader {
+    SensorType type;
+    uint8_t _pad;
+    uint16_t _pad2;
+    uint32_t time;
+};
+
 class Sensor {
 protected:
     QueueHandle_t queue;
@@ -33,10 +40,8 @@ public:
     }
     Packet get() {
         Packet packet{
-            static_cast<uint8_t>(PacketType::Sensor),
-            static_cast<uint8_t>(type),
+            PacketType::Sensor,
             payload,
-            std::unique_ptr<uint8_t[]>(new uint8_t[payload]())
         };
         if (peek) {
             xQueuePeek(queue, packet.data.get(), portMAX_DELAY);
