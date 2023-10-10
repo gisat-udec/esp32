@@ -5,6 +5,7 @@ from tkinter import messagebox
 from collections import deque
 from camera import Camera
 from sensor import Sensor
+from gps import GPS
 
 
 class UI:
@@ -12,6 +13,7 @@ class UI:
     root.title("Monitor")
 
     camera_window = False
+    gps_window = False
     sensor_window = False
 
     width = 300
@@ -71,6 +73,7 @@ class UI:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.bind("<<stats_update>>", self.stats_update)
         self.bCamara["command"] = self.new_camera_window
+        self.bGPS["command"] = self.new_gps_window
         self.bSensores["command"] = self.new_sensor_window
 
     def on_closing(self):
@@ -85,6 +88,10 @@ class UI:
     def new_camera_window(self):
         if not self.camera_window:
             self.camera_window = Camera(self)
+
+    def new_gps_window(self):
+        if not self.gps_window:
+            self.gps_window = GPS(self)
 
     def new_sensor_window(self):
         if not self.sensor_window:
