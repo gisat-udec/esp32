@@ -5,6 +5,8 @@
 #include <memory>
 #include "../packet.hpp"
 
+#define PEEK_MS 100
+
 enum struct SensorType : uint8_t {
     BNO080,
     BME680,
@@ -33,6 +35,8 @@ struct SensorData {
 class Sensor {
 private:
     QueueHandle_t queue;
+    QueueHandle_t new_reading;
+    uint32_t next_peek = 0;
 protected:
     const size_t payload;
     const bool peek;
@@ -41,6 +45,11 @@ public:
     Sensor(SensorType type, size_t payload, bool peek)
         : type(type), payload(payload + sizeof(SensorHeader)), peek(peek) {
         queue = xQueueCreate(1, payload + sizeof(SensorHeader));
+        if (peek) {
+            new_reading = xQueueCreate(1, sizeof(bool));
+            bool f = false;
+            xQueueOverwrite(new_reading, &f);
+        }
     };
     virtual void setup() = 0;
     virtual void loop() = 0;
@@ -56,8 +65,24 @@ public:
         } else {
             xQueueOverwrite(queue, &data);
         }
+        if (peek) {
+            bool t = true;
+            xQueueOverwrite(new_reading, &t);
+        }
     }
     bool available() {
+        if (peek) {
+            bool is_new_reading;
+            xQueuePeek(new_reading, &is_new_reading, portMAX_DELAY);
+            if (!is_new_reading && xTaskGetTickCount() < next_peek) {
+                return false;
+            }
+            if (is_new_reading) {
+                bool f = false;
+                xQueueOverwrite(new_reading, &f);
+            }
+            next_peek = xTaskGetTickCount() + pdMS_TO_TICKS(PEEK_MS);
+        }
         return (uxQueueMessagesWaiting(queue) > 0);
     }
     Packet get() {
