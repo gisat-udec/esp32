@@ -123,13 +123,11 @@ class BME680_c : public Sensor {
 private:
     const std::string name = "BME680";
     const std::vector<std::string> vars = {
-        "time",
         "temperature",
         "pressure",
         "humidity"
     };
     typedef std::tuple<
-        float_t,
         float_t,
         float_t,
         float_t
@@ -170,13 +168,11 @@ class GPS_c : public Sensor {
 private:
     const std::string name = "GPS";
     const std::vector<std::string> vars = {
-        "time",
         "latitude",
         "longitude",
         "altitude"
     };
     typedef std::tuple<
-        float_t,
         float_t,
         float_t,
         float_t

@@ -28,7 +28,6 @@ void BME680_c::setup() {
 void BME680_c::loop() {
     if (iaqSensor.run()) {
         container data = {
-            pdTICKS_TO_MS(xTaskGetTickCount()),
             iaqSensor.temperature,
             iaqSensor.pressure,
             iaqSensor.humidity

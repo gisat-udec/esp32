@@ -12,15 +12,14 @@ void GPS_c::setup() {
 void GPS_c::loop() {
     while (Serial2.available() > 0) {
         if (gps.encode(Serial2.read())) {
-            //if (gps.location.isUpdated()) {
-            container data = {
-                pdTICKS_TO_MS(xTaskGetTickCount()),
-                gps.location.lat(),
-                gps.location.lng(),
-                gps.altitude.meters(),
-            };
-            reading(data, false);
-            //}
+            if (gps.location.isUpdated()) {
+                container data = {
+                    gps.location.lat(),
+                    gps.location.lng(),
+                    gps.altitude.meters(),
+                };
+                reading(data, false);
+            }
         }
     }
 }

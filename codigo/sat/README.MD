@@ -1,6 +1,6 @@
 ## Firmware satélite ESP-32
 
-Sketch de Arduino creado en Arduino IDE 2.2.1
+Sketch de Arduino creado para Arduino IDE 2.2.1
 
 #### Placa
 
