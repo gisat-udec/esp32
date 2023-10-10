@@ -23,7 +23,7 @@ void setup() {
     i2c_task->add(dynamic_cast<Sensor *>(new BME680_c()));
     i2c_task->run(1);
 
-    camera_task = new SensorTask("CAMERA", 9000);
+    camera_task = new SensorTask("CAMERA", 15000);
     camera_task->add(dynamic_cast<Sensor *>(new Camera_c()));
     camera_task->run(1);
 
@@ -36,7 +36,7 @@ void setup() {
 
     xTaskCreatePinnedToCore([](void *) -> void {
         gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
-        TickType_t wake;
+        TickType_t wake = xTaskGetTickCount();
         const TickType_t freq = pdMS_TO_TICKS(500);
         while (1) {
             gpio_set_level(LED_PIN, 0);

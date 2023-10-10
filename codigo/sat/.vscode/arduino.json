@@ -1,6 +1,6 @@
 {
-	"board": "esp32:esp32:esp32cam",
-	"port": "COM15",
-	"sketch": "sat.ino",
-	"output": "./build"
+    "board": "esp32:esp32:esp32cam",
+    "port": "COM10",
+    "sketch": "sat.ino",
+    "output": "./build"
 }

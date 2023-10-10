@@ -32,7 +32,7 @@ void wifi::init() {
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous_filter(&filter));
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous_ctrl_filter(&filter));
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous(true));
-    ESP_ERROR_CHECK(esp_wifi_set_promiscuous_rx_cb(rx_callback));
+    //ESP_ERROR_CHECK(esp_wifi_set_promiscuous_rx_cb(rx_callback));
     ESP_ERROR_CHECK(esp_wifi_set_tx_done_cb(tx_callback));
     ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(80));
     std::copy_n(dot11_header, sizeof(dot11_header), tx_buffer);

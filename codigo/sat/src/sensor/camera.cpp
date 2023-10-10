@@ -23,7 +23,7 @@
 #define PCLK_GPIO_NUM     22
 
 // control de framerate
-#define FRAMERATE 5
+#define FRAMERATE 10
 TickType_t last_frame_tick;
 constexpr TickType_t freq = pdMS_TO_TICKS(1000 / FRAMERATE);
 
@@ -59,10 +59,13 @@ void Camera_c::setup() {
     sensor->set_framesize(sensor, config.frame_size);
     sensor->set_saturation(sensor, 0);
     frame = 0;
+    last_frame_tick = xTaskGetTickCount();
 }
 
 void Camera_c::loop() {
-    vTaskDelayUntil(&last_frame_tick, freq);
+    while (!xTaskDelayUntil(&last_frame_tick, freq)) {
+        continue;
+    };
     camera_fb_t *fb = esp_camera_fb_get();
     typedef uint8_t id;
     const size_t CHUNK_DATA_SIZE = 1000;
