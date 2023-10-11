@@ -1,35 +1,35 @@
-import asyncio
 import time
-from struct import *
+import asyncio
+import managetkeventdata as tke
 from zfec.easyfec import Decoder
-
-
-class Connection:
-    def __init__(self, eth):
-        self.eth = eth
-
-    def connection_made(self, transport):
-        self.transport = transport
-
-    def datagram_received(self, data, addr):
-        self.eth.tx_callback(data, addr)
+from struct import unpack
 
 
 class Ethernet:
-    def __init__(self, ui):
-        self.ui = ui
+    class Connection:
+        def __init__(self, eth):
+            self.eth = eth
 
-    async def init(self):
+        def connection_made(self, transport):
+            self.transport = transport
+
+        def datagram_received(self, data, addr):
+            self.eth.tx_callback(data, addr)
+
+    def __init__(self, app):
+        self.app = app
+
+    async def run(self):
         loop = asyncio.get_running_loop()
         transport, protocol = await loop.create_datagram_endpoint(
-            lambda: Connection(self),
+            lambda: self.Connection(self),
             local_addr=('0.0.0.0', 27015))
 
     camera_chunks = dict()
 
     def tx_callback(self, data, addr):
         now = time.time()
-        # Leer cabezal del paquete
+        # Leer cabezal
         packet_header_start = 0
         packet_header_len = 4
         packet_header_end = packet_header_start + packet_header_len
@@ -58,18 +58,12 @@ class Ethernet:
                         x = payload[2]
                         y = payload[1]
                         z = payload[0]
-                        if (self.ui.sensor_window):
-                            self.ui.sensor_window.update_bno(x, y, z)
                     # BME680
                     case 1:
-                        payload = unpack("<ffff", data[sensor_header_end:])
-                        read_time = payload[3]
+                        payload = unpack("<fff", data[sensor_header_end:])
                         temperature = payload[2]
                         pressure = payload[1]
                         humidity = payload[0]
-                        if (self.ui.sensor_window):
-                            self.ui.sensor_window.update_bme(
-                                temperature, pressure, humidity)
                     # Camara
                     case 2:
                         header_len = 8
@@ -101,28 +95,25 @@ class Ethernet:
                             blocknums = list(
                                 self.camera_chunks[frame]["chunks"].keys())
                             decoded = dec.decode(blocks, blocknums, padlen=0)
-                            if (self.ui.camera_window):
-                                self.ui.camera_window.display(decoded)
+                            tke.event_generate(
+                                self.app.ui.root, "<<onframe>>", decoded)
                         # Eliminar frames antiguos
                         for frame in self.camera_chunks.copy():
                             if self.camera_chunks[frame]["time"] < now - 1:
                                 del self.camera_chunks[frame]
                     case 3:
-                        payload = unpack("<ffff", data[sensor_header_end:])
-                        read_time = payload[3]
+                        payload = unpack("<fff", data[sensor_header_end:])
                         latitude = payload[2]
                         longitude = payload[1]
                         altitude = payload[0]
             # Estadisticas
             case 1:
                 payload = unpack("Ll", data[packet_header_len:])
-                self.ui.stats_update({
-                    "rssi": payload[1],
-                    "bytes": payload[0]
-                })
-                # print(rssi, rx_bytes)
+                tke.event_generate(
+                    self.app.ui.root, "<<onstats>>", {
+                        "rssi": payload[1],
+                        "bytes": payload[0]
+                    })
             # Ping
             case 2:
                 payload = unpack("L", data[packet_header_len:])
-                t = payload[0]
-                # print(time)

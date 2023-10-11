@@ -1,21 +1,23 @@
-import asyncio
-import tkinter as tk
+from matplotlib.figure import Figure
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
 import time
-from tkinter import messagebox
+import tkinter as tk
+import managetkeventdata as tke
 from collections import deque
-from camera import Camera
-from sensor import Sensor
-from gps import GPS
+from PIL import Image, ImageTk, ImageFile
+from io import BytesIO
+import numpy as np
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+root = tk.Tk()
 
 
 class UI:
-    root = tk.Tk()
+    root = root
+    root.geometry("400x400")
     root.title("Monitor")
-
-    camera_window = False
-    gps_window = False
-    sensor_window = False
-
     width = 300
     height = 145
     screenwidth = root.winfo_screenwidth()
@@ -25,87 +27,110 @@ class UI:
     root.geometry(alignstr)
     root.resizable(width=False, height=False)
 
-    bCamara = tk.Button(root)
-    bCamara["text"] = "Camara"
-    bCamara.place(x=10, y=10, width=70, height=25)
+    bCamera = tk.Button(root)
+    bCamera["text"] = "Camara"
+    bCamera.place(x=10, y=10, width=70, height=25)
 
     bGPS = tk.Button(root)
     bGPS["text"] = "GPS"
     bGPS.place(x=10, y=40, width=70, height=25)
 
-    bSensores = tk.Button(root)
-    bSensores["text"] = "Sensores"
-    bSensores.place(x=10, y=70, width=70, height=25)
+    bSensor = tk.Button(root)
+    bSensor["text"] = "Sensores"
+    bSensor.place(x=10, y=70, width=70, height=25)
 
-    ilCalidad = tk.Label(root)
-    ilCalidad["anchor"] = "w"
-    ilCalidad["text"] = "Calidad de la señal:"
-    ilCalidad.place(x=90, y=10, width=150, height=25)
+    ilRSSI = tk.Label(root)
+    ilRSSI["anchor"] = "w"
+    ilRSSI["text"] = "Calidad de la señal:"
+    ilRSSI.place(x=90, y=10, width=150, height=25)
 
-    ilVelocidad = tk.Label(root)
-    ilVelocidad["anchor"] = "w"
-    ilVelocidad["text"] = "Velocidad de transmisión:"
-    ilVelocidad.place(x=90, y=40, width=150, height=25)
+    ilSpeed = tk.Label(root)
+    ilSpeed["anchor"] = "w"
+    ilSpeed["text"] = "Velocidad de transmisión:"
+    ilSpeed.place(x=90, y=40, width=150, height=25)
 
-    lCalidad = tk.Label(root)
-    lCalidad["anchor"] = "w"
-    lCalidad["text"] = "-127 dBm"
-    lCalidad.place(x=230, y=10, width=60, height=25)
+    lRSSI = tk.Label(root)
+    lRSSI["anchor"] = "w"
+    lRSSI["text"] = "-127 dBm"
+    lRSSI.place(x=230, y=10, width=60, height=25)
 
-    lVelocidad = tk.Label(root)
-    lVelocidad["anchor"] = "w"
-    lVelocidad["text"] = "0 mbps"
-    lVelocidad.place(x=230, y=40, width=60, height=25)
+    lSpeed = tk.Label(root)
+    lSpeed["anchor"] = "w"
+    lSpeed["text"] = "0 mbps"
+    lSpeed.place(x=230, y=40, width=60, height=25)
 
-    bGrabar = tk.Button(root)
-    bGrabar["text"] = "Grabar"
-    bGrabar.place(x=10, y=110, width=70, height=25)
+    bRecord = tk.Button(root)
+    bRecord["text"] = "Grabar"
+    bRecord.place(x=10, y=110, width=70, height=25)
 
-    lEstado = tk.Label(root)
-    lEstado["anchor"] = "w"
-    lEstado["text"] = "En espera"
-    lEstado.place(x=90, y=110, width=70, height=25)
+    lRecordState = tk.Label(root)
+    lRecordState["anchor"] = "w"
+    lRecordState["text"] = "En espera"
+    lRecordState.place(x=90, y=110, width=70, height=25)
 
-    # Registro de bytes recibidos en que tiempo
     rx_log = deque()
 
-    def __init__(self):
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.bind("<<stats_update>>", self.stats_update)
-        self.bCamara["command"] = self.new_camera_window
-        self.bGPS["command"] = self.new_gps_window
-        self.bSensores["command"] = self.new_sensor_window
+    def __init__(self, app):
+        self.app = app
+        self.camera = UI_Camera(self)
+        self.bCamera["command"] = self.camera.window.deiconify
+        self.sensor = UI_Sensor(self)
+        self.bSensor["command"] = self.sensor.window.deiconify
+        tke.bind(self.root, "<<onstats>>", self.onstats)
+        self.root.after(1, self.loop)
 
-    def on_closing(self):
-        # if messagebox.askokcancel("Salir", "Seguro que desea salir?"):
-        self.root.destroy()
-        asyncio.get_event_loop().stop()
+    def onstats(self, event):
+        self.lRSSI["text"] = "{0} dBm".format(event.data["rssi"])
+        self.rx_log.append((event.data["bytes"], time.time()))
 
-    def stats_update(self, stats):
-        self.lCalidad["text"] = "{0} dBm".format(stats["rssi"])
-        self.rx_log.append((stats["bytes"], time.time()))
+    def loop(self):
+        sec_ago = time.time() - 1
+        for i in range(0, len(self.rx_log)):
+            if (self.rx_log[0][1] < sec_ago):
+                self.rx_log.popleft()
+        rx_bytes = 0
+        for i in range(0, len(self.rx_log)):
+            rx_bytes += self.rx_log[i][0]
+        self.lSpeed["text"] = "{0:.2f} mbps".format(rx_bytes / 125000)
+        self.root.after(20, self.loop)
 
-    def new_camera_window(self):
-        if not self.camera_window:
-            self.camera_window = Camera(self)
 
-    def new_gps_window(self):
-        if not self.gps_window:
-            self.gps_window = GPS(self)
+class UI_Camera:
+    window = tk.Toplevel(root)
+    window.protocol("WM_DELETE_WINDOW", window.withdraw)
+    window.geometry("640x480")
+    window.resizable(width=False, height=False)
+    window.withdraw()
 
-    def new_sensor_window(self):
-        if not self.sensor_window:
-            self.sensor_window = Sensor(self)
+    canvas = tk.Canvas(window, width=640, height=480)
+    canvas.pack(fill=tk.BOTH, expand=tk.YES)
+    canvas.create_line(0, 0, 640, 480)
 
-    async def loop(self):
-        while (True):
-            sec_ago = time.time() - 1
-            for i in range(0, len(self.rx_log)):
-                if (self.rx_log[0][1] < sec_ago):
-                    self.rx_log.popleft()
-            rx_bytes = 0
-            for i in range(0, len(self.rx_log)):
-                rx_bytes += self.rx_log[i][0]
-            self.lVelocidad["text"] = "{0:.2f} mbps".format(rx_bytes / 125000)
-            self.root.update()
-            await asyncio.sleep(1/60)
+    def __init__(self, ui):
+        self.ui = ui
+        tke.bind(ui.root, "<<onframe>>", self.onframe)
+
+    def onframe(self, event):
+        self.image = ImageTk.PhotoImage(Image.open(BytesIO(event.data)))
+        self.canvas.create_image((0, 0), anchor=tk.NW, image=self.image)
+
+
+class UI_Sensor:
+    window = tk.Toplevel(root)
+    window.protocol("WM_DELETE_WINDOW", window.withdraw)
+    window.geometry("640x480")
+    window.withdraw()
+
+    fig = Figure(figsize=(5, 4), dpi=100)
+    t = np.arange(0, 3, .01)
+    fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+
+    canvas = FigureCanvasTkAgg(fig, master=window)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+    toolbar = NavigationToolbar2Tk(canvas, window)
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+    def __init__(self, ui):
+        self.ui = ui

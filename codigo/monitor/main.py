@@ -1,14 +1,24 @@
 import asyncio
+import threading
+import tkinter as tk
+import managetkeventdata as tke
 from ui import UI
-from ethernet import Ethernet
+from comms import Ethernet
 
 
-async def main():
-    ui = UI()
-    loop.create_task(ui.loop())
-    ethernet = Ethernet(ui)
-    await ethernet.init()
+class App:
+    def __init__(self):
+        self.ui = UI(self)
+        self.ethernet = Ethernet(self)
+        threading.Thread(target=self.thread, daemon=True).start()
 
-loop = asyncio.get_event_loop()
-loop.create_task(main())
-loop.run_forever()
+    loop = asyncio.new_event_loop()
+
+    def thread(self):
+        self.loop.create_task(self.ethernet.run())
+        self.loop.run_forever()
+
+
+app = App()
+tk.mainloop()
+app.loop.call_soon_threadsafe(app.loop.stop)
