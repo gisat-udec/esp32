@@ -1,4 +1,5 @@
-import tkinter as tk
+from tkinter import *
+from tkinter.ttk import *
 import managetkeventdata as tke
 import numpy as np
 from matplotlib.figure import Figure
@@ -9,7 +10,7 @@ from vispy import app, scene
 from vispy.color import Color
 
 
-class UI_Sensor(tk.Toplevel):
+class UI_Sensor(Toplevel):
     def __init__(self, *args):
         super().__init__(*args)
         self.withdraw()

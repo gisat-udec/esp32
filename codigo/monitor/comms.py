@@ -2,6 +2,8 @@ import threading
 import asyncio
 from packet import Packet
 
+PORT = 27015
+
 
 class Ethernet:
     class Connection:
@@ -27,7 +29,7 @@ class Ethernet:
         loop = asyncio.get_running_loop()
         transport, protocol = await loop.create_datagram_endpoint(
             lambda: self.Connection(self),
-            local_addr=('0.0.0.0', 27015))
+            local_addr=('0.0.0.0', PORT))
 
     def tx_callback(self, data, addr):
         Packet.onpacket(self.app.ui, data)

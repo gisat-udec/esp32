@@ -1,4 +1,5 @@
-import tkinter as tk
+from tkinter import *
+from tkinter.ttk import *
 import managetkeventdata as tke
 import time
 from collections import deque
@@ -8,7 +9,7 @@ from ui.sensor import UI_Sensor
 from ui.gps import UI_GPS
 
 
-class UI(tk.Tk):
+class UI(Tk):
     def __init__(self, app):
         super().__init__()
         self.interval_s = 1.0 / 60.0
@@ -29,46 +30,46 @@ class UI(tk.Tk):
         self.geometry(alignstr)
         self.resizable(width=False, height=False)
 
-        self.bCamera = tk.Button(self)
+        self.bCamera = Button(self)
         self.bCamera["text"] = "Camara"
         self.bCamera.place(x=10, y=10, width=70, height=25)
         self.bCamera["command"] = self.camera.deiconify
 
-        self.bGPS = tk.Button(self)
+        self.bGPS = Button(self)
         self.bGPS["text"] = "GPS"
         self.bGPS.place(x=10, y=40, width=70, height=25)
         self.bGPS["command"] = self.gps.deiconify
 
-        self.bSensor = tk.Button(self)
+        self.bSensor = Button(self)
         self.bSensor["text"] = "Sensores"
         self.bSensor.place(x=10, y=70, width=70, height=25)
         self.bSensor["command"] = self.sensor.deiconify
 
-        self.ilRSSI = tk.Label(self)
+        self.ilRSSI = Label(self)
         self.ilRSSI["anchor"] = "w"
         self.ilRSSI["text"] = "Calidad de la señal:"
         self.ilRSSI.place(x=90, y=10, width=150, height=25)
 
-        self.ilSpeed = tk.Label(self)
+        self.ilSpeed = Label(self)
         self.ilSpeed["anchor"] = "w"
         self.ilSpeed["text"] = "Velocidad de transmisión:"
         self.ilSpeed.place(x=90, y=40, width=150, height=25)
 
-        self.lRSSI = tk.Label(self)
+        self.lRSSI = Label(self)
         self.lRSSI["anchor"] = "w"
         self.lRSSI["text"] = "- dBm"
         self.lRSSI.place(x=230, y=10, width=60, height=25)
 
-        self.lSpeed = tk.Label(self)
+        self.lSpeed = Label(self)
         self.lSpeed["anchor"] = "w"
         self.lSpeed["text"] = "0 mbps"
         self.lSpeed.place(x=230, y=40, width=60, height=25)
 
-        self.bRecord = tk.Button(self)
+        self.bRecord = Button(self)
         self.bRecord["text"] = "Grabar"
         self.bRecord.place(x=10, y=110, width=70, height=25)
 
-        self.lRecordState = tk.Label(self)
+        self.lRecordState = Label(self)
         self.lRecordState["anchor"] = "w"
         self.lRecordState["text"] = "En espera"
         self.lRecordState.place(x=90, y=110, width=70, height=25)
