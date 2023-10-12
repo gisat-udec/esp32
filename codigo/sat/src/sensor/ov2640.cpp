@@ -1,4 +1,3 @@
-#include "config.h"
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <esp_camera.h>
