@@ -1,4 +1,3 @@
-
 import tkinter as tk
 import managetkeventdata as tke
 import time
@@ -17,6 +16,7 @@ class UI(tk.Tk):
         self.app = app
         self.camera = UI_Camera(self)
         self.sensor = UI_Sensor(self)
+        self.gps = UI_GPS(self)
 
         self.geometry("400x400")
         self.title("Monitor")
@@ -37,6 +37,7 @@ class UI(tk.Tk):
         self.bGPS = tk.Button(self)
         self.bGPS["text"] = "GPS"
         self.bGPS.place(x=10, y=40, width=70, height=25)
+        self.bGPS["command"] = self.gps.window.deiconify
 
         self.bSensor = tk.Button(self)
         self.bSensor["text"] = "Sensores"
