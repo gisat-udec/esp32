@@ -103,7 +103,7 @@ class Packet:
                         camera_chunks[frame]["chunks"].keys())
                     decoded = dec.decode(blocks, blocknums, padlen=0)
                     tke.event_generate(
-                        ui, "<<onframe>>", decoded)
+                        ui.camera, "<<onframe>>", decoded)
                 # Eliminar frames antiguos
                 for frame in camera_chunks.copy():
                     if camera_chunks[frame]["time"] < now - 1:

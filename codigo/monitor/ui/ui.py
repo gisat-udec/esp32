@@ -32,17 +32,17 @@ class UI(tk.Tk):
         self.bCamera = tk.Button(self)
         self.bCamera["text"] = "Camara"
         self.bCamera.place(x=10, y=10, width=70, height=25)
-        self.bCamera["command"] = self.camera.window.deiconify
+        self.bCamera["command"] = self.camera.deiconify
 
         self.bGPS = tk.Button(self)
         self.bGPS["text"] = "GPS"
         self.bGPS.place(x=10, y=40, width=70, height=25)
-        self.bGPS["command"] = self.gps.window.deiconify
+        self.bGPS["command"] = self.gps.deiconify
 
         self.bSensor = tk.Button(self)
         self.bSensor["text"] = "Sensores"
         self.bSensor.place(x=10, y=70, width=70, height=25)
-        self.bSensor["command"] = self.sensor.window.deiconify
+        self.bSensor["command"] = self.sensor.deiconify
 
         self.ilRSSI = tk.Label(self)
         self.ilRSSI["anchor"] = "w"
@@ -56,7 +56,7 @@ class UI(tk.Tk):
 
         self.lRSSI = tk.Label(self)
         self.lRSSI["anchor"] = "w"
-        self.lRSSI["text"] = "-127 dBm"
+        self.lRSSI["text"] = "- dBm"
         self.lRSSI.place(x=230, y=10, width=60, height=25)
 
         self.lSpeed = tk.Label(self)
