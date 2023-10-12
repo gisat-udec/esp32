@@ -1,21 +1,16 @@
-from matplotlib.figure import Figure
-from matplotlib.backend_bases import key_press_handler
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-import time
+
 import tkinter as tk
 import managetkeventdata as tke
+import time
 from collections import deque
-from PIL import Image, ImageTk, ImageFile
-from io import BytesIO
-import numpy as np
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-root = tk.Tk()
+from ui.camera import UI_Camera
+from ui.sensor import UI_Sensor
+from ui.gps import UI_GPS
 
 
 class UI:
-    root = root
+    root = tk.Tk()
     root.geometry("400x400")
     root.title("Monitor")
     width = 300
@@ -93,44 +88,3 @@ class UI:
             rx_bytes += self.rx_log[i][0]
         self.lSpeed["text"] = "{0:.2f} mbps".format(rx_bytes / 125000)
         self.root.after(20, self.loop)
-
-
-class UI_Camera:
-    window = tk.Toplevel(root)
-    window.protocol("WM_DELETE_WINDOW", window.withdraw)
-    window.geometry("640x480")
-    window.resizable(width=False, height=False)
-    window.withdraw()
-
-    canvas = tk.Canvas(window, width=640, height=480)
-    canvas.pack(fill=tk.BOTH, expand=tk.YES)
-    canvas.create_line(0, 0, 640, 480)
-
-    def __init__(self, ui):
-        self.ui = ui
-        tke.bind(ui.root, "<<onframe>>", self.onframe)
-
-    def onframe(self, event):
-        self.image = ImageTk.PhotoImage(Image.open(BytesIO(event.data)))
-        self.canvas.create_image((0, 0), anchor=tk.NW, image=self.image)
-
-
-class UI_Sensor:
-    window = tk.Toplevel(root)
-    window.protocol("WM_DELETE_WINDOW", window.withdraw)
-    window.geometry("640x480")
-    window.withdraw()
-
-    fig = Figure(figsize=(5, 4), dpi=100)
-    t = np.arange(0, 3, .01)
-    fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
-
-    canvas = FigureCanvasTkAgg(fig, master=window)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
-    toolbar = NavigationToolbar2Tk(canvas, window)
-    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
-    def __init__(self, ui):
-        self.ui = ui

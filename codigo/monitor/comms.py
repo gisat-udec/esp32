@@ -1,6 +1,7 @@
-import time
-import asyncio
 import managetkeventdata as tke
+import asyncio
+import threading
+import time
 from zfec.easyfec import Decoder
 from struct import unpack
 
@@ -18,6 +19,12 @@ class Ethernet:
 
     def __init__(self, app):
         self.app = app
+        threading.Thread(target=self.thread, daemon=True).start()
+
+    def thread(self):
+        self.loop = asyncio.new_event_loop()
+        self.loop.create_task(self.run())
+        self.loop.run_forever()
 
     async def run(self):
         loop = asyncio.get_running_loop()
