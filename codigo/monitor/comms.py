@@ -55,26 +55,30 @@ class Ethernet:
                     # BNO080
                     case 0:
                         payload = unpack("<fff", data[sensor_header_end:])
-                        x = payload[2]
+                        x = payload[0]
                         y = payload[1]
-                        z = payload[0]
+                        z = payload[2]
                     # BME680
                     case 1:
                         payload = unpack("<fff", data[sensor_header_end:])
-                        temperature = payload[2]
+                        temperature = payload[0]
                         pressure = payload[1]
-                        humidity = payload[0]
+                        humidity = payload[2]
                     # Camara
                     case 2:
-                        header_len = 8
-                        chunk_len = 1000
+                        camera_header_start = sensor_header_end
+                        camera_header_len = 7
+                        camera_header_end = camera_header_start + camera_header_len
+                        camera_chunk_start = camera_header_end
+                        camera_chunk_len = 1000
+                        camera_chunk_end = camera_chunk_start + camera_chunk_len
                         camera_header = unpack(
-                            "<BBBBI", data[-header_len:])
-                        id = camera_header[0]
-                        v = camera_header[1]
-                        k = camera_header[2]
-                        frame = camera_header[4]
-                        chunk = data[-chunk_len - header_len:-header_len]
+                            "<IBBB", data[camera_header_start:camera_header_end])
+                        frame = camera_header[0]
+                        k = camera_header[1]
+                        v = camera_header[2]
+                        id = camera_header[3]
+                        chunk = data[camera_chunk_start:camera_chunk_end]
                         if not self.camera_chunks.get(frame):
                             self.camera_chunks[frame] = {
                                 "time": now,
@@ -103,9 +107,9 @@ class Ethernet:
                                 del self.camera_chunks[frame]
                     case 3:
                         payload = unpack("<fff", data[sensor_header_end:])
-                        latitude = payload[2]
+                        latitude = payload[0]
                         longitude = payload[1]
-                        altitude = payload[0]
+                        altitude = payload[2]
             # Estadisticas
             case 1:
                 payload = unpack("Ll", data[packet_header_len:])

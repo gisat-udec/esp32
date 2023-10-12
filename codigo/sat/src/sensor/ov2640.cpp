@@ -1,3 +1,4 @@
+#include "config.h"
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <esp_camera.h>
@@ -22,14 +23,9 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-// control de framerate
-#define FRAMERATE 10
-TickType_t last_frame_tick;
-constexpr TickType_t freq = pdMS_TO_TICKS(1000 / FRAMERATE);
-
 int frame;
 
-void Camera_c::setup() {
+void OV2640_c::setup() {
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
@@ -59,13 +55,10 @@ void Camera_c::setup() {
     sensor->set_framesize(sensor, config.frame_size);
     sensor->set_saturation(sensor, 0);
     frame = 0;
-    last_frame_tick = xTaskGetTickCount();
 }
 
-void Camera_c::loop() {
-    while (!xTaskDelayUntil(&last_frame_tick, freq)) {
-        continue;
-    };
+void OV2640_c::loop() {
+    vTaskDelay(10);
     camera_fb_t *fb = esp_camera_fb_get();
     typedef uint8_t id;
     const size_t CHUNK_DATA_SIZE = 1000;

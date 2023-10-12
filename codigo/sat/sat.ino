@@ -24,11 +24,11 @@ void setup() {
     i2c_task->run(1);
 
     camera_task = new SensorTask("CAMERA", 15000);
-    camera_task->add(dynamic_cast<Sensor *>(new Camera_c()));
+    camera_task->add(dynamic_cast<Sensor *>(new OV2640_c()));
     camera_task->run(1);
 
     gps_task = new SensorTask("GPS", 7000);
-    gps_task->add(dynamic_cast<Sensor *>(new GPS_c()));
+    gps_task->add(dynamic_cast<Sensor *>(new ATGM336H_c()));
     gps_task->run(0);
 
     delay(2);
