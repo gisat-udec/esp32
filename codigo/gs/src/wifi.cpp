@@ -61,9 +61,34 @@ IRAM_ATTR void wifi::rx_callback(void *buf, wifi_promiscuous_pkt_type_t type) {
     }
 
     // Enviar estadisticas
-    std::tuple<int32_t, uint32_t> stats = {
-        static_cast<int32_t>(packet->rx_ctrl.rssi),
-        static_cast<uint32_t>(packet->rx_ctrl.sig_len)
+    struct {
+        int32_t rssi;
+        uint32_t bytes;
+    } stats = {
+        packet->rx_ctrl.rssi,
+        packet->rx_ctrl.sig_len
     };
-    eth::send(Packet(PacketType::Stats, 0, sizeof(stats), &stats));
+    eth::send(Packet(PacketType::Stats, sizeof(stats), &stats));
+}
+
+size_t len = sizeof(dot11_header);
+IRAM_ATTR void wifi::send(const std::vector<Packet> &packets) {
+    /*
+    for (auto packet = packets.begin(); packet != packets.end(); packet++) {
+        // copy packet data into a buffer
+        if ((len + packet->len()) <= MTU) {
+            std::copy_n(packet->header_ptr(), packet->header_len(), &tx_buffer[len]);
+            len += packet->header_len();
+            std::copy_n(packet->data_ptr(), packet->data_len(), &tx_buffer[len]);
+            len += packet->data_len();
+        }
+        // send buffer data over wifi if its going to exceed MTU
+        auto next_packet = std::next(packet);
+        if (next_packet == packets.end() || len + next_packet->len() > MTU) {
+            ESP_ERROR_CHECK(esp_wifi_80211_tx(WIFI_IF_STA, tx_buffer, len, false));
+            ulTaskNotifyTake(true, portMAX_DELAY);
+            len = sizeof(dot11_header);
+        }
+    }
+    */
 }

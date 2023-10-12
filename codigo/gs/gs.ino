@@ -5,7 +5,6 @@
 #include "src/ethernet.hpp"
 #include "src/packet.hpp"
 
-
 void setup() {
     Serial.begin(115200);
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -15,7 +14,7 @@ void setup() {
     TimerHandle_t ping_timer = xTimerCreate("ping timer", pdMS_TO_TICKS(1000), pdTRUE, NULL,
         [](TimerHandle_t xTimer) {
             int time = millis();
-            eth::send(Packet(PacketType::Ping, 0, sizeof(time), &time));
+            eth::send(Packet(PacketType::Ping, sizeof(time), &time));
         });
     xTimerStart(ping_timer, 0);
 }

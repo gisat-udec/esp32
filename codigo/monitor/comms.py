@@ -112,11 +112,11 @@ class Ethernet:
                         altitude = payload[2]
             # Estadisticas
             case 1:
-                payload = unpack("Ll", data[packet_header_len:])
+                payload = unpack("lL", data[packet_header_len:])
                 tke.event_generate(
                     self.app.ui.root, "<<onstats>>", {
-                        "rssi": payload[1],
-                        "bytes": payload[0]
+                        "rssi": payload[0],
+                        "bytes": payload[1]
                     })
             # Ping
             case 2:
