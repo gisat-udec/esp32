@@ -1,0 +1,7 @@
+managetkeventdata==2023.7.9
+matplotlib==3.7.1
+numpy==1.25.0
+Pillow==10.0.1
+tkintermapview==1.29
+vispy==0.14.1
+zfec==1.5.7.3
