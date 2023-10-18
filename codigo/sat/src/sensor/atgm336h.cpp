@@ -6,7 +6,7 @@
 TinyGPSPlus gps;
 
 void ATGM336H_c::setup() {
-    Serial2.begin(9600, SERIAL_8N1, 13, 12);
+    Serial2.begin(9600, SERIAL_8N1, 13, -1);
 }
 
 void ATGM336H_c::loop() {
