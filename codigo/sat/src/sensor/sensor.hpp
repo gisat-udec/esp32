@@ -118,9 +118,9 @@ public:
 class SensorAmbient : public Sensor {
 protected:
     struct container {
-        uint32_t temperature;
-        uint32_t humidity;
-        uint32_t pressure;
+        float temperature;
+        float humidity;
+        float pressure;
     };
 public:
     SensorAmbient(SensorSource source) :
