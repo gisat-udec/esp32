@@ -18,7 +18,7 @@ Programa de estación en tierra con el propósito de monitorear y llevar un regi
 
 #### Prerequisitos
 
-1. [Windows Terminal](https://apps.microsoft.com/detail/windows-terminal/9N0DX20HK701?hl=es-cl&gl=CL)
+1. [Windows Terminal](https://aka.ms/terminal)
 
 2. [Python](https://www.python.org/downloads/windows/)
 
