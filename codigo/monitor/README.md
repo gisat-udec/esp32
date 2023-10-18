@@ -22,15 +22,17 @@ Programa de estación en tierra con el propósito de monitorear y llevar un regi
 
 2. [Python](https://www.python.org/downloads/windows/)
 
+3. [Repositorio](https://github.com/gisat-udec/esp32/archive/refs/heads/main.zip)
+
 #### Instrucciones
 
-1. Descargar archivos del repositorio con boton "<> Code" y Download ZIP
+1. Descomprimir archivos del repositorio y dirigirse a la carpeta "monitor", con click derecho "Abrir en Terminal"
 
-2. Descomprimir y dirigirse a la carpeta "monitor" y con click derecho "Abrir en Terminal"
+![Abrir terminal](docs/abrir_terminal.png)
 
-3. Instalar dependencias de Python con comando `pip install -r requirements.txt`
+2. Instalar dependencias de Python con comando `pip install -r requirements.txt`
 
-4. Ejecutar codigo con `python main.py`
+3. Ejecutar codigo con `python main.py`
 
 ### Librerías
 
