@@ -69,11 +69,14 @@ class Packet:
                 x = payload[0]
                 y = payload[1]
                 z = payload[2]
+                print("imu x: ", x, " y: ", y, " z: ", z)
             case consts.SENSOR_AMBIENT:
                 payload = unpack("<fff", data[sensor_header_end:])
                 temperature = payload[0]
                 pressure = payload[1]
                 humidity = payload[2]
+                print("ambient temp: ", temperature, " pressure: ",
+                      pressure, " humidity: ", humidity)
             case consts.SENSOR_CAMERA:
                 camera_header = unpack(
                     "<IBBB", data[camera_header_start:camera_header_end])
@@ -113,3 +116,5 @@ class Packet:
                 latitude = payload[0]
                 longitude = payload[1]
                 altitude = payload[2]
+                print("gps lat: ", latitude, " lon: ",
+                      longitude, " alt: ", altitude)
