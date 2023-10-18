@@ -105,9 +105,9 @@ public:
 class SensorIMU : public Sensor {
 protected:
     struct container {
-        uint32_t x;
-        uint32_t y;
-        uint32_t z;
+        float x;
+        float y;
+        float z;
     };
 public:
     SensorIMU(SensorSource source) :
