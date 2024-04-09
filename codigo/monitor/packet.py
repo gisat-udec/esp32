@@ -65,18 +65,13 @@ class Packet:
         sensor_time = sensor_header[3]
         match sensor_type:
             case consts.SENSOR_IMU:
-                payload = unpack("<fff", data[sensor_header_end:])
-                x = payload[0]
-                y = payload[1]
-                z = payload[2]
-                print("imu x: ", x, " y: ", y, " z: ", z)
+                payload = unpack("<fffffff", data[sensor_header_end:])
+                tke.event_generate(
+                    ui.sensor, "<<onsensor>>", payload)
             case consts.SENSOR_AMBIENT:
                 payload = unpack("<fff", data[sensor_header_end:])
-                temperature = payload[0]
-                pressure = payload[1]
-                humidity = payload[2]
-                print("ambient temp: ", temperature, " pressure: ",
-                      pressure, " humidity: ", humidity)
+                tke.event_generate(
+                    ui.sensor, "<<onweather>>", payload)
             case consts.SENSOR_CAMERA:
                 camera_header = unpack(
                     "<IBBB", data[camera_header_start:camera_header_end])

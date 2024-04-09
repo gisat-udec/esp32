@@ -16,7 +16,7 @@ class UI(Tk):
         self.interval_ms = int(round(self.interval_s * 1000))
         self.app = app
         self.camera = UI_Camera(self)
-        self.sensor = UI_Sensor(self)
+        self.sensor = UI_Sensor()
         self.gps = UI_GPS(self)
 
         self.geometry("400x400")
@@ -43,7 +43,7 @@ class UI(Tk):
         self.bSensor = Button(self)
         self.bSensor["text"] = "Sensores"
         self.bSensor.place(x=10, y=70, width=70, height=25)
-        self.bSensor["command"] = self.sensor.deiconify
+        self.bSensor["command"] = self.sensor.show
 
         self.ilRSSI = Label(self)
         self.ilRSSI["anchor"] = "w"
@@ -84,6 +84,7 @@ class UI(Tk):
         self.rx_log.append((event.data["bytes"], time.time()))
 
     def loop(self):
+        self.sensor.update()
         sec_ago = time.time() - 1
         for i in range(0, len(self.rx_log)):
             if (self.rx_log[0][1] < sec_ago):

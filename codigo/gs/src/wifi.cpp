@@ -6,6 +6,7 @@
 #include <cstring>
 #include "packet.hpp"
 #include "wifi.hpp"
+#include "mac.hpp"
 #include "ethernet.hpp"
 
 namespace wifi {
